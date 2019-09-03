@@ -47,7 +47,16 @@ def remove_common(new, old):
 			)									# visited
 		)
 	)    
-													
+
+def pretty(raw_text):
+	print("entering clean")
+	clean_text = ""
+	for i in raw_text:
+		if(i.text != '\n'):
+			print(i.text)
+			clean_text = clean_text + i.text
+	return clean_text
+
 def get_page (addr_list, visited):
 	global num_visited
 	if(len(addr_list) > 0):
@@ -56,6 +65,7 @@ def get_page (addr_list, visited):
 		cur = addr_list[0]
 		print("visiting page ", cur)
 		if(cur[0:4] == "http"):
+			print("if 1")
 			visited.append(cur)
 			try:
 				page_data = requests.get(cur)
@@ -64,12 +74,13 @@ def get_page (addr_list, visited):
 			except:
 				print("bad page ", cur)
 			else:
+				print("if 2")
 				if(page_data.status_code == 200):
 					#print(page_data)
 					num_visited += 1
 					soup = BeautifulSoup(page_data.text, 'html.parser')
 
-					save_data(cur, soup.get_text())
+					save_data(cur, pretty(soup.find_all('p')))
 					
 					new_links = []
 					for link in soup.find_all('a'):
