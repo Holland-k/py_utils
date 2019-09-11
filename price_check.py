@@ -6,29 +6,34 @@ from email.MIMEText import MIMEText
 import datetime
 import os
 
+### Todo:
+###   (1) Check multiple products by reading in from a file
+###       various URLs
+###   (2) Figure out why the header was not working
+###   (3) Do a more intelligent price comparison
 URL = 'https://www.amazon.com/EVGA-GeForce-Gaming-Graphics-11G-P4-2487-KR/dp/B07KVKRLG2/ref=sr_1_1?keywords=rtx+2080+ti&qid=1568223702&s=gateway&sr=8-1'
 
 headers = { "User-Agent": 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0'}
 
+### Pull the price from the URL, specific to that URL for now. Save
+### the price to the log file, and then email if it is the lowest
+### price seen so far.
 def get_price():
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, 'html.parser')
-
-    #print(soup)
 
     title = soup.find(id="productTitle").get_text().strip()
     stitle = short_title(title)
 
     price = soup.find(id="priceblock_ourprice").get_text().strip()
-    #print("Product title is: " + title)
-    #print("Price is: " + price)
     nprice = float(((price.replace('$','')).replace(',',''))[0:-3])
-    #print(nprice)
 
     save_price(stitle, nprice)
     if(check_price(stitle, nprice)):
         email_price(stitle, nprice)
 
+### Checking price history to see if today's price is the lowest,
+### ignoring date field for now
 def check_price(title, price):
     f = open("history/"+title, 'r')
     min = -1
@@ -48,14 +53,12 @@ def short_title(ltitle):
         return ltitle[0:20]
 
 ### Saves the price to a text file for record keeping
-### format is <date> <price>; title is already in the file name
+### format is <date>TAB<price>; title is already in the file name
 def save_price(title, price):
     try:
         f = open("history/"+title, 'a')
-    #except FileExistsError:
-    #    f = open("history/"+title, 'a')
     except:
-        print("error opening file")
+        print("error opening file " + title)
         pass
     else:
         t = datetime.datetime.now()
@@ -81,14 +84,11 @@ def email_price(title, price):
     body = title + ' hit a new low price of ' + str(price) + ' check it out at ' + URL
     msg.attach(MIMEText(body))
     
-
     server.sendmail(
         email,
         email,
         msg.as_string()
     )
-
-    print("email sent")
 
     server.quit()
 
