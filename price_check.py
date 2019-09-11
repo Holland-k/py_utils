@@ -11,14 +11,14 @@ import os
 ###       various URLs
 ###   (2) Figure out why the header was not working
 ###   (3) Do a more intelligent price comparison
-URL = 'https://www.amazon.com/EVGA-GeForce-Gaming-Graphics-11G-P4-2487-KR/dp/B07KVKRLG2/ref=sr_1_1?keywords=rtx+2080+ti&qid=1568223702&s=gateway&sr=8-1'
+URL_list = ['https://www.amazon.com/EVGA-GeForce-Gaming-Graphics-11G-P4-2487-KR/dp/B07KVKRLG2/ref=sr_1_1?keywords=rtx+2080+ti&qid=1568223702&s=gateway&sr=8-1','https://www.amazon.com/gp/product/B00P7TPYDM/ref=ox_sc_saved_title_2?smid=ATVPDKIKX0DER&psc=1']
 
 headers = { "User-Agent": 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0'}
 
 ### Pull the price from the URL, specific to that URL for now. Save
 ### the price to the log file, and then email if it is the lowest
 ### price seen so far.
-def get_price():
+def get_price(URL):
     page = requests.get(URL)
     soup = BeautifulSoup(page.text, 'html.parser')
 
@@ -30,7 +30,7 @@ def get_price():
 
     save_price(stitle, nprice)
     if(check_price(stitle, nprice)):
-        email_price(stitle, nprice)
+        email_price(stitle, nprice, URL)
 
 ### Checking price history to see if today's price is the lowest,
 ### ignoring date field for now
@@ -67,7 +67,7 @@ def save_price(title, price):
         f.write(line)
         f.close()
 
-def email_price(title, price):
+def email_price(title, price, URL):
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()
     server.starttls()
@@ -107,4 +107,5 @@ def get_pword():
     f.close()
     return passw[0:-1]
 
-get_price()
+for i in URL_list:
+    get_price(i)
