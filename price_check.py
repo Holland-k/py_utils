@@ -5,6 +5,7 @@ from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 import datetime
 import os
+import time
 
 ### Todo:
 ###   (1) Check multiple products by reading in from a file
@@ -15,11 +16,16 @@ URL_list = ['https://www.amazon.com/EVGA-GeForce-Gaming-Graphics-11G-P4-2487-KR/
 
 headers = { "User-Agent": 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:69.0) Gecko/20100101 Firefox/69.0'}
 
+dir_prefix = "history/"
 ### Pull the price from the URL, specific to that URL for now. Save
 ### the price to the log file, and then email if it is the lowest
 ### price seen so far.
 def get_price(URL):
+    #page = requests.get(URL,headers=headers)
     page = requests.get(URL)
+    while(page.status_code != 200):
+        time.sleep(5)
+        page = requests.get(URL, headers=headers)
     soup = BeautifulSoup(page.text, 'html.parser')
 
     title = soup.find(id="productTitle").get_text().strip()
@@ -35,7 +41,7 @@ def get_price(URL):
 ### Checking price history to see if today's price is the lowest,
 ### ignoring date field for now
 def check_price(title, price):
-    f = open("history/"+title, 'r')
+    f = open(dir_prefix+title, 'r')
     min = -1
     for i in f:
         cp = float(i.split('\t')[1])
@@ -56,7 +62,7 @@ def short_title(ltitle):
 ### format is <date>TAB<price>; title is already in the file name
 def save_price(title, price):
     try:
-        f = open("history/"+title, 'a')
+        f = open(dir_prefix+title, 'a')
     except:
         print("error opening file " + title)
         pass
