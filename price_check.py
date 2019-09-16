@@ -34,12 +34,25 @@ def get_price(URL):
     title = soup.find(id="productTitle").get_text().strip()
     stitle = short_title(title)
 
-    price = soup.find(id="priceblock_ourprice").get_text().strip()
-    nprice = float(((price.replace('$','')).replace(',',''))[0:-3])
+    pr = soup.find(id="priceblock_ourprice")
+    i = 0
+    while(pr == None and i < 5):
+         page = requests.get(URL, headers=headers)
+         soup = BeautifulSoup(page.text, 'html.parser')
+         soup.find(id="priceblock_ourprice")
+         i += 1
+         time.sleep(2)
+         
+    try:
+        price = pr.get_text().strip()
+    except:
+        pass
+    else:
+        nprice = float(((price.replace('$','')).replace(',',''))[0:-3])
 
-    if(check_price(stitle, nprice)):
-        email_price(stitle, nprice, URL)
-    save_price(stitle, nprice)
+        if(check_price(stitle, nprice)):
+            email_price(stitle, nprice, URL)
+            save_price(stitle, nprice)
 
 ### Checking price history to see if today's price is the lowest,
 ### ignoring date field for now
