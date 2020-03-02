@@ -79,6 +79,7 @@ def get_page (addr_list, visited):
                 return 0
             except:
                 print("bad page ", cur)
+                addr_list = addr_list[1:]
             else:
                 print("if 2")
                 if(page_data.status_code == 200):
@@ -92,14 +93,16 @@ def get_page (addr_list, visited):
                         new_links.append(link.get('href'))
 
                     #if(len(addr_list) < visit_depth):
-                    addr_list = addr_list + remove_common(new_links, visited)
+                    addr_list = addr_list[1:] + remove_common(new_links, visited)
+                else:
+                    addr_list = addr_list[1:]
         if(downloaded > max_down_size):
             print("exceeded daily limit, sleeping")
             time.sleep(20*60*60)
             downloaded = 0
         else:
             time.sleep(time_to_sleep)
-        cur_page += 1
+        #cur_page += 1
         
     return 0
 
@@ -112,8 +115,8 @@ def setup(max_v = 5000000, depth = 100, tts = 1):
     downloaded = 0
     max_down_size = 6442450944 # in bytes
 
-def main():
-    get_page(["https://en.wikipedia.org/wiki/Hurricane_Dorian"],[])
+def main(fptv):
+    get_page([fptv],[])
     if(downloaded > 1000):
         dt = downloaded / 1024
         if(dt > 1000):
@@ -128,4 +131,4 @@ def main():
     print("total amount downloaded = " + hda)
 
 setup()
-main()
+main("https://en.wikipedia.org/wiki/Yellowstone_National_Park")
